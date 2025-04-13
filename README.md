@@ -1,1 +1,1 @@
-# QRScan
+# QRScano
