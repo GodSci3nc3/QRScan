@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRScan - Sistema de Asistencia UPV</title>
+    <style>
+        :root {
+            --primary: #000000;
+            --secondary: #333333;
+            --accent: #0066cc;
+            --light: #f8f9fa;
+            --success: #28a745;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--primary);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 24px;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 30px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--secondary);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--accent);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #0055aa;
+            transform: translateY(-2px);
+        }
+        
+        .hero {
+            padding: 150px 0 100px;
+            text-align: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e5e6 100%);
+        }
+        
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .hero p {
+            font-size: 20px;
+            color: var(--secondary);
+            max-width: 700px;
+            margin: 0 auto 40px;
+        }
+        
+        .qr-demo {
+            background-color: white;
+            padding: 80px 0;
+        }
+        
+        .qr-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .qr-info {
+            flex: 1;
+            min-width: 300px;
+            padding-right: 40px;
+        }
+        
+        .qr-info h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        
+        .qr-info p {
+            margin-bottom: 25px;
+            font-size: 18px;
+            color: var(--secondary);
+        }
+        
+        .qr-image {
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .qr-code {
+            max-width: 280px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            position: relative;
+        }
+        
+        .check-mark {
+            position: absolute;
+            bottom: -15px;
+            right: -15px;
+            background-color: var(--success);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+        
+        .features {
+            padding: 80px 0;
+            background-color: #f8f9fa;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .section-header h2 {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+        
+        .section-header p {
+            color: var(--secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 18px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            font-size: 40px;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+        
+        .feature-card h3 {
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        
+        .feature-card p {
+            color: var(--secondary);
+        }
+        
+        .team {
+            padding: 80px 0;
+            background-color: white;
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .team-member {
+            text-align: center;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            transition: transform 0.3s;
+        }
+        
+        .team-member:hover {
+            transform: translateY(-5px);
+        }
+        
+        .team-member img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .team-member h3 {
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+        
+        .team-member p {
+            color: var(--secondary);
+            font-size: 16px;
+        }
+        
+        footer {
+            background-color: var(--primary);
+            color: white;
+            padding: 60px 0 30px;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+        
+        .footer-info {
+            flex: 2;
+            min-width: 300px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-info h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .footer-info p {
+            margin-bottom: 20px;
+            color: rgba(255,255,255,0.8);
+            max-width: 400px;
+        }
+        
+        .footer-links {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-links h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .footer-links ul {
+            list-style: none;
+        }
+        
+        .footer-links ul li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-links ul li a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links ul li a:hover {
+            color: white;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .nav-links {
+                margin-top: 20px;
+                justify-content: center;
+            }
+            
+            .nav-links li {
+                margin: 0 15px;
+            }
+            
+            .hero h1 {
+                font-size: 36px;
+            }
+            
+            .hero p {
+                font-size: 18px;
+            }
+            
+            .qr-container {
+                flex-direction: column;
+            }
+            
+            .qr-info {
+                padding-right: 0;
+                margin-bottom: 40px;
+                text-align: center;
+            }
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hero h1, .hero p, .hero .btn {
+            opacity: 0;
+            animation: fadeIn 0.8s forwards;
+        }
+        
+        .hero h1 { animation-delay: 0.2s; }
+        .hero p { animation-delay: 0.4s; }
+        .hero .btn { animation-delay: 0.6s; }
+        
+        .feature-card:nth-child(1) { animation: fadeIn 0.5s forwards; animation-delay: 0.1s; }
+        .feature-card:nth-child(2) { animation: fadeIn 0.5s forwards; animation-delay: 0.2s; }
+        .feature-card:nth-child(3) { animation: fadeIn 0.5s forwards; animation-delay: 0.3s; }
+        
+        .team-member:nth-child(1) { animation: fadeIn 0.5s forwards; animation-delay: 0.1s; }
+        .team-member:nth-child(2) { animation: fadeIn 0.5s forwards; animation-delay: 0.2s; }
+        .team-member:nth-child(3) { animation: fadeIn 0.5s forwards; animation-delay: 0.3s; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="#" class="logo">
+                    <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="10" y="10" width="80" height="80" rx="5" stroke="black" stroke-width="5"/>
+                        <path d="M20 20h10v10h-10z M30 20h10v10h-10z M50 20h10v10h-10z M70 20h10v10h-10z M20 30h10v10h-10z M50 30h10v10h-10z M70 30h10v10h-10z M20 50h10v10h-10z M30 50h10v10h-10z M40 50h10v10h-10z M70 50h10v10h-10z M20 70h10v10h-10z M50 70h10v10h-10z M70 70h10v10h-10z" fill="black"/>
+                        <circle cx="80" cy="80" r="25" fill="#28a745"/>
+                        <path d="M70 80l5 5 15-15" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    QRScan
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#features">Características</a></li>
+                    <li><a href="#demo">Demo</a></li>
+                    <li><a href="#team">Equipo</a></li>
+                    <li><a href="/asistencia" class="btn">Marcar Asistencia</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <section class="hero">
+        <div class="container">
+            <h1>Modernizando la Asistencia Universitaria</h1>
+            <p>QRScan transforma el proceso tradicional de control de asistencia mediante tecnología QR y una interfaz intuitiva para estudiantes y profesores.</p>
+            <a href="/asistencia" class="btn">Registrar Asistencia</a>
+        </div>
+    </section>
+    
+    <section class="qr-demo" id="demo">
+        <div class="container">
+            <div class="qr-container">
+                <div class="qr-info">
+                    <h2>Un único código QR para todos</h2>
+                    <p>Simplificamos el proceso con un solo código QR y un sistema de autenticación personalizado. Olvídate de generar múltiples códigos para cada estudiante.</p>
+                    <p>Escanea, identifícate y registra tu asistencia en segundos, sin complicaciones ni retrasos.</p>
+                    <a href="/asistencia" class="btn">Probar Ahora</a>
+                </div>
+                <div class="qr-image">
+                    <img src="/sources/qrCode.png" alt="Código QR de QRScan" class="qr-code">
+                    <div class="check-mark">✓</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Características Destacadas</h2>
+                <p>Una solución completa y eficiente para el control de asistencia universitaria</p>
+            </div>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Autenticación Segura</h3>
+                    <p>Identifica a cada estudiante de manera única y segura, evitando suplantaciones y registros fraudulentos.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Registro Instantáneo</h3>
+                    <p>Marca asistencia en tiempo real con confirmación inmediata, sin necesidad de largas esperas o procesos manuales.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Registro Automático</h3>
+                    <p>Actualización automática en hojas de cálculo Excel, facilitando el seguimiento y análisis de datos de asistencia.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="team" id="team">
+        <div class="container">
+            <div class="section-header">
+                <h2>Nuestro Equipo</h2>
+            </div>
+            
+            <div class="team-grid">
+                <div class="team-member">
+                    <img src="/api/placeholder/120/120" alt="Arturo Rosales">
+                    <h3>Arturo Rosales Velázquez</h3>
+            
+                </div>
+                
+                <div class="team-member">
+                    <img src="/api/placeholder/120/120" alt="Ricardo Balderas">
+                    <h3>Ricardo Balderas González</h3>
+            
+                </div>
+                
+                <div class="team-member">
+                    <img src="/api/placeholder/120/120" alt="Irving Rodriguez">
+                    <h3>Irving Oswaldo Rodriguez Segovia</h3>
+                    
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <h3>QRScan</h3>
+                    <p>Un proyecto innovador para la gestión de asistencia universitaria desarrollado en la Universidad Politécnica de Victoria.</p>
+                </div>
+                
+                <div class="footer-links">
+                    <h3>Enlaces Rápidos</h3>
+                    <ul>
+                        <li><a href="#features">Características</a></li>
+                        <li><a href="#demo">Demo</a></li>
+                        <li><a href="#team">Equipo</a></li>
+                        <li><a href="/asistencia">Marcar Asistencia</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h3>Proyecto</h3>
+                    <ul>
+                        <li><a href="#">Sistemas Operativos</a></li>
+                        <li><a href="#">UPV</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                &copy; 2025 QRScan - Arturo Rosales V. 
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Animaciones al hacer scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            // Reiniciar animaciones al hacer scroll
+            const animatedElements = document.querySelectorAll('.feature-card, .team-member');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = 1;
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            animatedElements.forEach(el => {
+                el.style.opacity = 0;
+                el.style.transform = 'translateY(20px)';
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>

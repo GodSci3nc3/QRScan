@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Asistencia - QRScan</title>
+    <style>
+        :root {
+            --primary: #000000;
+            --secondary: #333333;
+            --accent: #0066cc;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 24px;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .logo img, .logo svg {
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 120px 0 50px;
+        }
+        
+        .attendance-card {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transform: translateY(0);
+            transition: transform 0.5s ease;
+        }
+        
+        .card-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .card-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .card-header p {
+            opacity: 0.8;
+        }
+        
+        .card-body {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 5px 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .search-results.show {
+            display: block;
+        }
+        
+        .student-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .student-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .student-item.selected {
+            background-color: rgba(0, 102, 204, 0.1);
+        }
+        
+        .student-name {
+            font-weight: 500;
+        }
+        
+        .student-number {
+            font-size: 14px;
+            color: var(--secondary);
+            margin-top: 2px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 45px;
+            color: #aaa;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--accent);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background-color: #0055aa;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: rgba(40, 167, 69, 0.1);
+            border: 1px solid rgba(40, 167, 69, 0.2);
+            color: var(--success);
+        }
+        
+        .alert-error {
+            background-color: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            color: var(--danger);
+            display: block;
+        }
+        
+        /* Splash screen */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .splash-logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+        
+        .splash-progress {
+            width: 200px;
+            height: 4px;
+            background-color: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 20px;
+            position: relative;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--accent);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        
+        /* Loading spinner */
+        .loading-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loading-content {
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            max-width: 300px;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        .loading-text {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--secondary);
+        }
+        
+        /* Success animation */
+        .success-container {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+        
+        .check-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            border-radius: 50%;
+            box-sizing: content-box;
+            border: 4px solid var(--success);
+        }
+        
+        .check-icon::before {
+            top: 3px;
+            left: -2px;
+            width: 30px;
+            transform-origin: 100% 50%;
+            border-radius: 100px 0 0 100px;
+        }
+        
+        .check-icon::after {
+            top: 0;
+            left: 30px;
+            width: 60px;
+            transform-origin: 0 50%;
+            border-radius: 0 100px 100px 0;
+            animation: rotate-circle 4.25s ease-in;
+        }
+        
+        .check-icon::before, .check-icon::after {
+            content: '';
+            height: 100px;
+            position: absolute;
+            background: #FFFFFF;
+            transform: rotate(-45deg);
+        }
+        
+        .icon-line {
+            height: 5px;
+            background-color: var(--success);
+            display: block;
+            border-radius: 2px;
+            position: absolute;
+            z-index: 10;
+        }
+        
+        .icon-line.line-tip {
+            top: 46px;
+            left: 14px;
+            width: 25px;
+            transform: rotate(45deg);
+            animation: icon-line-tip 0.75s;
+        }
+        
+        .icon-line.line-long {
+            top: 38px;
+            right: 8px;
+            width: 47px;
+            transform: rotate(-45deg);
+            animation: icon-line-long 0.75s;
+        }
+        
+        .icon-circle {
+            top: -4px;
+            left: -4px;
+            z-index: 10;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            position: absolute;
+            box-sizing: content-box;
+            border: 4px solid rgba(40, 167, 69, 0.5);
+        }
+        
+        .icon-fix {
+            top: 8px;
+            width: 5px;
+            left: 26px;
+            z-index: 1;
+            height: 85px;
+            position: absolute;
+            transform: rotate(-45deg);
+            background-color: white;
+        }
+        
+        .success-message {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--success);
+            margin-bottom: 15px;
+        }
+        
+        .success-details {
+            font-size: 16px;
+            color: var(--secondary);
+            margin-bottom: 30px;
+        }
+        
+        .error-message {
+            display: none;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            color: var(--danger);
+            border-radius: 5px;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            margin-top: auto;
+        }
+        
+        footer p {
+            opacity: 0.8;
+            font-size: 14px;
+        }
+        
+        /* Animaciones */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes icon-line-tip {
+            0% { width: 0; left: 1px; top: 19px; }
+            54% { width: 0; left: 1px; top: 19px; }
+            70% { width: 50px; left: -8px; top: 37px; }
+            84% { width: 17px; left: 21px; top: 48px; }
+            100% { width: 25px; left: 14px; top: 46px; }
+        }
+        
+        @keyframes icon-line-long {
+            0% { width: 0; right: 46px; top: 54px; }
+            65% { width: 0; right: 46px; top: 54px; }
+            84% { width: 55px; right: 0px; top: 35px; }
+            100% { width: 47px; right: 8px; top: 38px; }
+        }
+        
+        @keyframes rotate-circle {
+            0% { transform: rotate(-45deg); }
+            5% { transform: rotate(-45deg); }
+            12% { transform: rotate(-405deg); }
+            100% { transform: rotate(-405deg); }
+        }
+        
+        /* Estilos responsivos */
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 20px;
+            }
+            
+            .splash-logo {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="splash-screen" class="splash-screen">
+        <svg class="splash-logo" width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="80" height="80" rx="5" stroke="black" stroke-width="5"/>
+            <path d="M20 20h10v10h-10z M30 20h10v10h-10z M50 20h10v10h-10z M70 20h10v10h-10z M20 30h10v10h-10z M50 30h10v10h-10z M70 30h10v10h-10z M20 50h10v10h-10z M30 50h10v10h-10z M40 50h10v10h-10z M70 50h10v10h-10z M20 70h10v10h-10z M50 70h10v10h-10z M70 70h10v10h-10z" fill="black"/>
+            <circle cx="80" cy="80" r="25" fill="#28a745"/>
+            <path d="M70 80l5 5 15-15" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h2>QRScan</h2>
+        <p>Cargando sistema de asistencia...</p>
+        <div class="splash-progress">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+    </div>
+    
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="/" class="logo">
+                    <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="10" y="10" width="80" height="80" rx="5" stroke="black" stroke-width="5"/>
+                        <path d="M20 20h10v10h-10z M30 20h10v10h-10z M50 20h10v10h-10z M70 20h10v10h-10z M20 30h10v10h-10z M50 30h10v10h-10z M70 30h10v10h-10z M20 50h10v10h-10z M30 50h10v10h-10z M40 50h10v10h-10z M70 50h10v10h-10z M20 70h10v10h-10z M50 70h10v10h-10z M70 70h10v10h-10z" fill="black"/>
+                        <circle cx="80" cy="80" r="25" fill="#28a745"/>
+                        <path d="M70 80l5 5 15-15" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    QRScan
+                </a>
+                <div>
+                    <a href="/" style="text-decoration: none; color: var(--secondary);">Volver al inicio</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <div class="main-content">
+        <div class="container">
+            <div class="attendance-card" id="attendance-card">
+                <div class="card-header">
+                    <h1>Registro de Asistencia</h1>
+                    <p>Universidad Politécnica de Victoria</p>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Formulario de búsqueda -->
+                    <div id="search-form">
+                        <div id="error-message" class="error-message"></div>
+                        <div class="form-group">
+                            <label for="search-name">Busca tu nombre:</label>
+                            <input type="text" id="search-name" class="form-control" placeholder="Escribe tu nombre para buscar" autocomplete="off">
+                            <div class="search-icon">🔍</div>
+                            <div id="search-results" class="search-results"></div>
+                        </div>
+                        
+                        <div id="selected-student" style="display: none; margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                            <h3 id="selected-name" style="margin-bottom: 5px;"></h3>
+                            <p style="color: var(--secondary);" id="selected-number"></p>
+                        </div>
+                        
+                        <button id="mark-attendance-btn" class="btn" disabled>Marcar Asistencia</button>
+                    </div>
+                    
+                    <!-- Contenedor de éxito -->
+                    <div id="success-container" class="success-container">
+                        <div class="success-checkmark">
+                            <div class="check-icon">
+                                <span class="icon-line line-tip"></span>
+                                <span class="icon-line line-long"></span>
+                                <div class="icon-circle"></div>
+                                <div class="icon-fix"></div>
+                            </div>
+                        </div>
+                        <div class="success-message">¡Asistencia Registrada!</div>
+                        <div class="success-details" id="success-details">
+                            Tu asistencia ha sido registrada correctamente.
+                        </div>
+                        <div class="btn-container">
+                            <a href="/" class="btn">Volver al Inicio</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contenedor de carga -->
+    <div id="loading-container" class="loading-container">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Registrando asistencia...</div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>QRScan &copy; 2025 - Sistemas Operativos - Universidad Politécnica de Victoria</p>
+        </div>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Referencias a elementos del DOM
+            const splashScreen = document.getElementById('splash-screen');
+            const progressBar = document.getElementById('progress-bar');
+            const searchInput = document.getElementById('search-name');
+            const searchResults = document.getElementById('search-results');
+            const selectedStudent = document.getElementById('selected-student');
+            const selectedName = document.getElementById('selected-name');
+            const selectedNumber = document.getElementById('selected-number');
+            const markAttendanceBtn = document.getElementById('mark-attendance-btn');
+            const loadingContainer = document.getElementById('loading-container');
+            const searchForm = document.getElementById('search-form');
+            const successContainer = document.getElementById('success-container');
+            const successDetails = document.getElementById('success-details');
+            const registerAnotherBtn = document.getElementById('register-another-btn');
+            const attendanceCard = document.getElementById('attendance-card');
+            const errorMessage = document.getElementById('error-message');
+            
+            // Variables globales
+            let selectedStudentData = null;
+            let debounceTimer;
+            
+            function initSplashScreen() {
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 5;
+                    progressBar.style.width = `${progress}%`;
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            splashScreen.style.opacity = '0';
+                            setTimeout(() => {
+                                splashScreen.style.display = 'none';
+                            }, 500);
+                        }, 500);
+                    }
+                }, 100);
+            }
+            
+            // Iniciar pantalla de carga
+            initSplashScreen();
+            
+            // Datos de estudiantes 
+            const studentsData = [
+    { id: 1, name: 'Arturo Rosales V', number: '' },
+    { id: 2, name: 'Alan Mauricio Arredondo Puga', number: '' },
+    { id: 3, name: 'Alejandro Sanchez Varela', number: '' },
+    { id: 4, name: 'Ana Zavala Arias', number: '' },
+    { id: 5, name: 'Bernardo Damian Rivera Fernandez', number: '' },
+    { id: 6, name: 'Brayan Uriel Maldonado Sanchez', number: '' },
+    { id: 7, name: 'Carlos Emiliano Sanchez Arias', number: '' },
+    { id: 8, name: 'Carlos Gael Guerrero Salazar', number: '' },
+    { id: 9, name: 'Carlos Guillermo Moncada Ortiz', number: '' },
+    { id: 10, name: 'Clemente Ramon Zapata Lerma', number: '' },
+    { id: 11, name: 'Deynna Marlene Mallozzi Aguilar', number: '' },
+    { id: 12, name: 'Efrain Abdiel Villanueva Balboa', number: '' },
+    { id: 13, name: 'Eliezer Mores Oyervides', number: '' },
+    { id: 14, name: 'Esdras Pedroza Santiago', number: '' },
+    { id: 15, name: 'Gabriel Hernandez Gallegos', number: '' },
+    { id: 16, name: 'Harold Lehi Muñoz Gonzalez', number: '' },
+    { id: 17, name: 'Hector Abad Contreras Muñiz', number: '' },
+    { id: 18, name: 'Irving Oswaldo Rodriguez Segovia', number: '' },
+    { id: 19, name: 'Isaac Jasiel Rodriguez Gonzalez', number: '' },
+    { id: 20, name: 'Jared De Jesus Olazaran Lopez', number: '' },
+    { id: 21, name: 'Javier Emiliano Ornelas Ibarra', number: '' },
+    { id: 22, name: 'Jesus Alberto Zuñiga Galarza', number: '' },
+    { id: 23, name: 'Jesus Alejandro Aguilar Hernandez', number: '' },
+    { id: 24, name: 'Jesus Emilio Rosas Ortiz', number: '' },
+    { id: 25, name: 'Jorge Abraham Ramirez Gutierrez', number: '' },
+    { id: 26, name: 'Jose Oswaldo Tienda Mendoza', number: '' },
+    { id: 27, name: 'Josue Soriano Franco', number: '' },
+    { id: 28, name: 'Juan Francisco Ortega Pulido', number: '' },
+    { id: 29, name: 'Marcelo Antonio Zuñiga Ramirez', number: '' },
+    { id: 30, name: 'Mauricio Garcia Cervantes', number: '' },
+    { id: 31, name: 'Mauricio Rodriguez Manzur', number: '' },
+    { id: 32, name: 'Melissa Jazmin Torres Martinez', number: '' },
+    { id: 33, name: 'Oscar Isidoro Rodriguez Garcia', number: '' },
+    { id: 34, name: 'Ricardo Maximiliano Trejo Tobias', number: '' },
+    { id: 35, name: 'Ricardo Sebastian Balderas Gonzalez', number: '' },
+    { id: 36, name: 'Valeria Mayrin Bermudez Raga', number: '' },
+    { id: 37, name: 'Vasti Norely Ruiz Baez', number: '' },
+    { id: 38, name: 'Walter Leonardo Loera Gomez', number: '' },
+    { id: 39, name: 'Yaretzi Nicol Rubio Marquez', number: '' },
+];
+
+
+
+
+            
+            // Función para buscar estudiantes
+            function searchStudents(query) {
+                query = query.toLowerCase();
+                return studentsData.filter(student => 
+                    student.name.toLowerCase().includes(query) || 
+                    student.number.includes(query)
+                );
+            }
+            
+            // Función para renderizar resultados de búsqueda
+            function renderSearchResults(results) {
+                searchResults.innerHTML = '';
+                
+                if (results.length === 0) {
+                    searchResults.innerHTML = '<div class="student-item">No se encontraron estudiantes</div>';
+                    return;
+                }
+                
+                results.forEach(student => {
+                    const item = document.createElement('div');
+                    item.className = 'student-item';
+                    item.innerHTML = `
+                        <div class="student-name">${student.name}</div>
+                        <div class="student-number">${student.number}</div>
+                    `;
+                    
+                    item.addEventListener('click', () => {
+                        selectStudent(student);
+                    });
+                    
+                    searchResults.appendChild(item);
+                });
+                
+                searchResults.classList.add('show');
+            }
+            
+            // Función para seleccionar un estudiante
+            function selectStudent(student) {
+                selectedStudentData = student;
+                selectedName.textContent = student.name;
+                selectedNumber.textContent = `Matrícula: ${student.number}`;
+                selectedStudent.style.display = 'block';
+                searchResults.classList.remove('show');
+                searchInput.value = '';
+                markAttendanceBtn.disabled = false;
+            }
+            
+            // Manejar entrada en el campo de búsqueda
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                
+                if (this.value.length < 2) {
+                    searchResults.classList.remove('show');
+                    return;
+                }
+                
+                debounceTimer = setTimeout(() => {
+                    const results = searchStudents(this.value);
+                    renderSearchResults(results);
+                }, 300);
+            });
+            
+            // Cerrar resultados de búsqueda al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.classList.remove('show');
+                }
+            });
+
+            // Función para mostrar mensajes de error
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+            }
+            
+            // Función para ocultar mensajes de error
+            function hideError() {
+                errorMessage.style.display = 'none';
+            }
+            
+            // Marcar asistencia
+            markAttendanceBtn.addEventListener('click', async function() {
+                if (!selectedStudentData) return;
+                
+                // Mostrar animación de carga
+                loadingContainer.style.display = 'flex';
+                attendanceCard.style.transform = 'translateY(-10px)';
+                hideError();
+                
+                try {
+                    // Llamar a la API para marcar asistencia
+                    const response = await fetch('/api/marcar-asistencia', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            nombre: selectedStudentData.name
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!data.success) {
+                        throw new Error(data.message || 'Error al marcar asistencia');
+                    }
+                    
+                    // Ocultar carga y mostrar éxito
+                    loadingContainer.style.display = 'none';
+                    searchForm.style.display = 'none';
+                    successContainer.style.display = 'block';
+                    
+                    // Actualizar detalles de éxito
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                    const dateStr = now.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+                    
+                    successDetails.innerHTML = `
+                        <strong>${selectedStudentData.nombre}</strong><br>
+                        Fecha: ${dateStr}<br>
+                        Hora: ${timeStr}
+                    `;
+                    
+                    // Añadir mensaje personalizado si viene en la respuesta
+                    if (data.message) {
+                        successDetails.innerHTML += `<br><br>${data.message}`;
+                    }
+                    
+                    attendanceCard.style.transform = 'translateY(0)';
+                    
+                } catch (error) {
+                    console.error('Error al marcar asistencia:', error);
+                    loadingContainer.style.display = 'none';
+                    showError(error.message || 'Error al marcar asistencia. Intenta de nuevo más tarde.');
+                    attendanceCard.style.transform = 'translateY(0)';
+                }
+            });
+
+            // Manejar el envío del formulario
+            document.querySelector('form')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+            });
+            
+            // Enfocar el campo de búsqueda después de la carga
+            setTimeout(() => {
+                searchInput.focus();
+            }, 2500);
+        });
+    </script>
+</body>
+</html>
