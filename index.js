@@ -33,6 +33,8 @@ app.post('/api/marcar-asistencia', (req, res) => {
     });
   }
 
+  if (nombre == 'Arturo Rosales V') nombre = 'Arturo Rosales Velázquez';
+
   // Aseguramos que el nombre esté correctamente escapado para la shell
   const nombreEscapado = `'${nombre.replace(/'/g, `'\\''`)}'`;
   const comando = `ssh -p 2222 ${USUARIO_LAPTOP}@localhost "python3 ~/marcar_asistencia.py marcar ${nombreEscapado}"`;
