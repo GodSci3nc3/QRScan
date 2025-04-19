@@ -24,7 +24,7 @@ app.get('/asistencia', (req, res) => {
 
 // API para marcar asistencia
 app.post('/api/marcar-asistencia', (req, res) => {
-  const { nombre } = req.body;
+  let { nombre } = req.body;
   
   if (!nombre) {
     return res.status(400).json({ 
